@@ -1,17 +1,14 @@
-# library(Rcpp)
-# library(parallel)
-# numCores <- detectCores()
 library(np)
 
 # Helper Function
 # Permutations to Generate the Perms of a certain length
-permutations <- function(n){
-  if(n==1){
+permutations <- function(n) {
+  if(n == 1) {
     return(matrix(1))
   } else {
-    sp <- permutations(n-1)
+    sp <- permutations(n - 1)
     p <- nrow(sp)
-    A <- matrix(nrow=n*p,ncol=n)
+    A <- matrix(nrow = n * p, ncol = n)
     for(i in 1:n){
       A[(i-1)*p+1:p,] <- cbind(i,sp+(sp>=i))
     }
@@ -19,14 +16,32 @@ permutations <- function(n){
   }
 }
 
+# Sample from a conditional KDE, with specified bandwidth parameters
 sample_conditional_errors <- function(w, lambda, xbw, ybw, W, U) {
     weights <- dnorm(x = w - W, mean = 0, sd = xbw)
     w_probs <- weights/sum(weights)
 
-    rnorm(n = lambda, sample(U, size = lambda, replace = TRUE, prob = w_probs), ybw)
+    rnorm(n = lambda,
+          sample(U, 
+                 size = lambda,
+                 replace = TRUE,
+                 prob = w_probs),
+          ybw)
 }
 
-np_simex <- function(replicates, estimator, U = NULL, val_Xs = NULL, M = 10, B = 50, parallel = TRUE, numCores = parallel::detectCores()/2, est.variance = "none", parPackage = "foreach", smoothed = FALSE, het = FALSE, ...) {
+np_simex <- function(replicates,
+                     estimator,
+                     U = NULL,
+                     val_Xs = NULL,
+                     M = 10,
+                     B = 50,
+                     parallel = TRUE,
+                     numCores = parallel::detectCores()/2,
+                     est.variance = "none",
+                     parPackage = "foreach",
+                     smoothed = FALSE,
+                     het = FALSE,
+                     ...) {
   if(class(estimator) != "function") stop("You must provide your estimator.")
   if(!("X" %in% formalArgs(estimator))) stop("Your estimator must accept the 'X' parameter.")
 
